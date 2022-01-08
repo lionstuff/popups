@@ -1,11 +1,10 @@
 <template>
   <v-app dark>
     <v-main style='object-fit: cover; background-color: green !important; background-image: url("https://picsum.photos/1920/1080/?random");'>
-      <v-container class='mx-auto' fluid>
+      <v-container class='mx-auto fill-height' fluid>
         <v-btn @click='drop'>drop</v-btn>
         <v-scroll-y-reverse-transition
-          :duration='3000'
-          :eager='true'
+          :duration='5000'
           :hide-on-leave='false'
           group
           mode='easy'
@@ -15,22 +14,22 @@
             :style='{
               "width": "100%",
               "height": "auto",
-              "top": `calc(100% - ${ ( 100 + marginBottomRef * 5 ) * ( i + 1 ) }px)`,
-              "position": "absolute",
+              "top": `calc(100% - ${ ( 125 + marginBottomRef * 5 ) * ( i + 1 ) }px)`,
+              "position": "fixed",
             }'
             class='ma-0'
             v-for='( item, i ) in stack'
           >
             <v-col cols='6' class='mx-auto'>
               <v-card
-                :class='[ `mb-${ marginBottomRef } font-weight-${ fontWeightRef } ${ fontSize[ fontSizeRef ] } ma-0 pa-0` ]'
+                :class='[ `mb-${ marginBottomRef } font-weight-${ fontWeight[ fontWeightRef ] } ${ fontSize[ fontSizeRef ] } ma-0 pa-0` ]'
                 dark
                 outlined
-                @mouseover='item.active = true;'
-                @mouseleave='item.active = false;'
+                @mouseover='item.active = true; isHover = true;'
+                @mouseleave='item.active = false; isHover = false;'
                 rounded
                 elevation='2'
-                height='100'
+                height='125'
                 width='100%'
                 :style='{
                   "background-color": `${ backgroundColor }`,
@@ -39,12 +38,12 @@
               >
                 <v-card-title :class='[ `my-${ item.active ? 0 : 2 } mx-4 pa-0 ${ fontSize[ fontSizeRef ] }` ]'>
                   <v-row class='ma-0' align='center' justify='space-between'>
-                    <v-col cols='10' class='pa-0' order='first'>
+                    <v-col cols='auto' class='pa-0' order='first'>
                       {{ item.username }}
                     </v-col>
-                    <v-col v-show='item.active' cols='2' class='pa-0' order='last' align='end' style='transform: scale( 0.55 ) translate( 50%, -15% );'>
+                    <v-col v-show='item.active' cols='auto' class='pa-0' order='last' align='end' style='transform: scale( 0.55 ) translate( 50%, -15% );'>
                       <v-row class='ma-0' align='center' justify='end'>
-                        <v-btn text plain @click.stop="{ settings = true; clearTimeout( timerId.value ); }" class='ma-0 pa-0' x-small color='transparent' icon='mdi-cog'></v-btn>
+                        <v-btn text plain @click.stop="settings = true; clearTimeout( timerId.value );" class='ma-0 pa-0' x-small color='transparent' icon='mdi-cog'></v-btn>
                         <v-btn text plain @click.stop='close( i )' class='ma-0 pa-0' x-small color='transparent' icon='mdi-close'></v-btn>
                       </v-row>
                     </v-col>
@@ -127,14 +126,13 @@
             drop();
           }
           setTimeout( () => {
-            if ( !settings.value ) {
+            if ( !settings.value && !isHover.value ) {
               close( 0 );
               step();
             }
           }, 5e3 );
         }, 1e3 );
       };
-
 
       const stack = ref<object[]>( [] );
 
@@ -156,6 +154,7 @@
         fontColor,
         fontSize,
         fontSizeRef,
+        fontWeight,
         fontWeightRef,
         isHover,
         marginBottomRef,
