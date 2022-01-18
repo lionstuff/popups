@@ -25,8 +25,8 @@
                 :class='[ `mb-${ marginBottomRef } font-weight-${ fontWeight[ fontWeightRef ] } ${ fontSize[ fontSizeRef ] } ma-0 pa-0` ]'
                 dark
                 outlined
-                @mouseover='item.active = true; isHover = true;'
-                @mouseleave='item.active = false; isHover = false;'
+                @mouseover='{ item.active = true; isHover = true; }'
+                @mouseleave='{ item.active = false; isHover = false; }'
                 rounded
                 elevation='2'
                 height='125'
@@ -43,7 +43,7 @@
                     </v-col>
                     <v-col v-show='item.active' cols='auto' class='pa-0' order='last' align='end' style='transform: scale( 0.55 ) translate( 50%, -15% );'>
                       <v-row class='ma-0' align='center' justify='end'>
-                        <v-btn text plain @click.stop="settings = true; clearTimeout( timerId.value );" class='ma-0 pa-0' x-small color='transparent' icon='mdi-cog'></v-btn>
+                        <v-btn text plain @click.stop="{ settings = true; clearTimeout( timerId.value ); }" class='ma-0 pa-0' x-small color='transparent' icon='mdi-cog'></v-btn>
                         <v-btn text plain @click.stop='close( i )' class='ma-0 pa-0' x-small color='transparent' icon='mdi-close'></v-btn>
                       </v-row>
                     </v-col>
@@ -85,6 +85,15 @@
 
   import { onMounted, ref, computed, defineComponent } from 'vue';
 
+  /**
+   * Handle incoming messages. Called when:
+   * - a message is received while the app has focus
+   * - the user clicks on an app notification created by a service worker
+   *   `messaging.onBackgroundMessage` handler.
+   * @docs https://firebase.google.com/docs/cloud-messaging/js/receive#handle_messages_when_your_web_app_is_in_the_foreground
+   */
+  import { getMessaging, onMessage, isSupported } from "firebase/messaging";
+
   export default defineComponent( {
     name: 'App',
 
@@ -94,7 +103,7 @@
       };
     },
 
-    setup: () => {
+    setup: ( props, context ) => {
       const fontWeight = ref( [ 'bold', 'normal', 'light', 'thin' ] );
       const fontWeightRef = ref( 2 );
       const marginBottomRef = ref( 5 );
@@ -145,7 +154,41 @@
         }
       };
 
-      onMounted( () => step() );
+      const messaging = getMessaging();
+
+      onMessage( messaging, ( payload: any ) => {
+        stack.value.push( { active: false, username: payload.username, text: payload.text } );
+      } );
+
+      onMounted( async () => {
+        // const isSupportedRef = await isSupported();
+
+        // if ( 'serviceWorker' in window.navigator/*  || isSupportedRef */ ) {
+        //   window.navigator.serviceWorker.register( './firebase-messaging-sw.js' )
+        //     .then( registration => {
+        //       console.log( "Service Worker Registered" );
+        //       // messaging.getToken( messaging, { vapidKey: process.env.VUE_APP_VAPID } ).then( ( currentToken: any ) => {
+        //       //   if ( currentToken ) {
+        //       //     // Send the token to your server and update the UI if necessary
+        //       //     // ...
+        //       //     console.log( { currentToken } );
+        //       //   } else {
+        //       //     // Show permission request UI
+        //       //     console.log( 'No registration token available. Request permission to generate one.' );
+        //       //     // ...
+        //       //   }
+        //       // } )
+        //       // .catch( ( error: Error ) => {
+        //       //   console.log( 'An error occurred while retrieving token. ', error );
+        //       //   // ...
+        //       // } );
+
+        //     } )
+        //     .catch( error => console.error( '[ERROR]:', error ) );
+        // }
+
+        step();
+      } );
 
       return {
         backgroundColor,
